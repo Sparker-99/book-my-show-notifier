@@ -1,0 +1,15 @@
+{
+    "name": "bms-notifier",
+    "version": "0.0.1",
+    "description": "a bms notifier",
+    "main": "index.js",
+    "author": "spark",
+    "scripts": {
+        "start": "node index.js"
+    },
+    "dependencies": {
+        "node-fetch": "^2.6.6",
+        "node-html-parser": "^5.1.0",
+        "open": "^8.4.0"
+    }
+}
