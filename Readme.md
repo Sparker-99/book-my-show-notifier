@@ -5,7 +5,7 @@
   </p>
 </div>
 
-### Version 0.0.1
+### Version 0.0.2
 _______
 
 ### About
@@ -51,7 +51,7 @@ ___
    release)
 * `bms_link` &mdash; Select the movie name in book my show website, then book tickets then select language and format and copy the
    link.
-   Example link: https://in.bookmyshow.com/buytickets/spider-man-no-way-home-3d-mx4d-mumbai/movie-mumbai-ET00319540-MT/20211216
+   Example link: https://in.bookmyshow.com/buytickets/spider-man-no-way-home-mumbai/movie-mumbai-ET00319539-MT/20211223 or https://in.bookmyshow.com/mumbai/movies/spider-man-no-way-home/ET00319540
  
 * `youtube_alarm` &mdash; select the song/video on youtube or wherever you want on your default browser just make sure browser autoplay is enabled otherwise you
     won't get notified.

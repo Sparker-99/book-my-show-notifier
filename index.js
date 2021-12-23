@@ -1,7 +1,7 @@
 const fs = require('fs');
 const open = require('open');
 const fetch = require('node-fetch');
-var htmlparser = require('node-html-parser');
+const htmlparser = require('node-html-parser');
 
 if (!fs.existsSync("./config.json")) {
     console.log("config.json not found\nExiting....");
@@ -34,7 +34,10 @@ let ecnt = 0;
 console.log("\033[36m▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬\n|\x1b[0m             \033[1mBOOK MY SHOW NOTIFIER  v" + require('./package.json').version + "\x1b[0m           \033[36m|\x1b[0m");
 console.log("\033[36m▬▬▬▬▬▬▬▬▬▬▬▬:Started looking for shows on " + config.date + ":" + (config.date.toString().length === 2 ? '' : '▬') + "▬▬▬▬▬▬▬▬▬▬\x1b[0m");
 
-let init = setInterval(async function () {
+if (/^\d+$/.test(config.bms_link.split('/').pop())) var aft = setInterval(postbk, config.update_interval * 1000);
+else var bfr = setInterval(prebk, config.update_interval * 1000);
+
+async function postbk() {
 
     let headers = {
         "Host": "in.bookmyshow.com",
@@ -47,8 +50,8 @@ let init = setInterval(async function () {
         .catch(() => { });
 
     if (!response) {
-        console.log("\x1b[31mAn error occured while monitoring Book my show [Retrying: " + ecnt + "/10 ]\x1b[0m");
-        if (ecnt === 10) return clearInterval(init);
+        console.log("\x1b[31mCould not connect to Book my show [Retrying: " + ecnt + "/10 ]\x1b[0m");
+        if (ecnt === 10) return clearInterval(aft);
         else return ecnt++;
     }
 
@@ -59,22 +62,55 @@ let init = setInterval(async function () {
     let avtheatres = root.querySelectorAll('ul[id="venuelist"] li').map(el => el.querySelector('div > div > div > div > a > strong').innerHTML.trim());
 
     if (avidates.length === 0 || avtheatres.length === 0) {
-        console.log("Either the website is changed or your link is wrong");
-        return clearInterval(init);
+        console.log("\nEither the website is changed or your link is wrong");
+        return clearInterval(aft);
     }
 
     if (avidates.includes(config.date)) {
         if (config.theatres.length == 0) {
-            console.log("\x1b[32m\n[State 1] We have found your movie on " + config.date + " !\x1b[0m");
+            console.log("\x1b[32m\n[State 2] We have found your movie on " + config.date + " !\x1b[0m");
             await open(config.youtube_alarm);
-            return clearInterval(init);
+            return clearInterval(aft);
 
         } else if (config.theatres.some(item => avtheatres.includes(item))) {
-            console.log("\x1b[32m\n[State 2] We have found your movie on " + config.theatres.filter(item => avtheatres.includes(item)).length + " theatres !\x1b[0m");
+            console.log("\x1b[32m\n[State 3] We have found your movie on " + config.theatres.filter(item => avtheatres.includes(item)).length + " theatres !\x1b[0m");
             await open(config.youtube_alarm);
-            return clearInterval(init);
+            return clearInterval(aft);
 
         }
     }
+}
 
-}, config.update_interval * 1000)
+async function prebk() {
+
+    let headers = {
+        "Host": "in.bookmyshow.com",
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:95.0) Gecko/20100101 Firefox/95.0",
+        "Accept": "*/*",
+        "Accept-Language": "en-US"
+    }
+
+    let response = await fetch(config.bms_link, { method: 'GET', headers: headers })
+        .catch(() => { });
+
+    if (!response) {
+        console.log("\x1b[31mCould not connect to Book my show [Retrying: " + ecnt + "/10 ]\x1b[0m");
+        if (ecnt === 10) return clearInterval(bfr);
+        else return ecnt++;
+    }
+
+    let root = htmlparser.parse(await response.text());
+
+    let stt = root.querySelector('div[class="styles__CtaWrapper-sc-qswwm9-8 JInhj"]')?.innerHTML;
+
+    if (typeof stt == 'undefined') {
+        console.log("\nEither the website is changed or your link is wrong");
+        return clearInterval(bfr);
+    }
+
+    if (stt.length !== 0) {
+        console.log("\x1b[32m\n[State 1] Bookings open for your movie, go grab those seats\x1b[0m");
+        await open(config.youtube_alarm);
+        return clearInterval(bfr);
+    }
+}
